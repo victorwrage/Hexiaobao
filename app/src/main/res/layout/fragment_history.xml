@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/coin_header"
+        layout="@layout/header_lay"
+        android:visibility="visible" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+        <TextView
+            android:id="@+id/history_total_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/hexiaobao_txt"
+            android:background="@drawable/shape"
+            android:layout_margin="5dp"
+            android:padding="5dp"
+            android:text="今天核销量：5条"/>
+        <com.zdv.hexiaobao.cus_view.RecyclerViewWithEmpty
+            android:id="@+id/history_unavailable_list"
+            android:layout_width="match_parent"
+            android:layout_below="@id/history_total_tv"
+            android:layout_marginTop="5dp"
+            android:layout_height="match_parent" />
+
+        <include
+            android:id="@+id/empty_lay"
+            layout="@layout/empty_lay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+    </RelativeLayout>
+</LinearLayout>
