@@ -5,6 +5,7 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import com.zdv.hexiaobao.bean.WDTResponseCode;
 import com.zdv.hexiaobao.bean.WandiantongLoginInfo;
 import com.zdv.hexiaobao.bean.WandiantongRespInfo;
 import com.zdv.hexiaobao.model.IRequestMode;
@@ -12,6 +13,7 @@ import com.zdv.hexiaobao.model.converter.CustomGsonConverter;
 import com.zdv.hexiaobao.model.converter.CustomXmlConverter;
 import com.zdv.hexiaobao.view.ILoginView;
 import com.zdv.hexiaobao.view.IOrderView;
+import com.zdv.hexiaobao.view.IPayView;
 import com.zdv.hexiaobao.view.IView;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -132,6 +134,25 @@ public class QueryPresent implements IRequestPresent {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(s -> ((IOrderView) iView).ResolveSearchCloudOrderInfo(s));
+    }
+
+    @Override
+    public void CloudPay(String id, String sign, String pay_type) {
+        iRequestMode.CloudPay(id, sign,pay_type)
+                .onErrorReturn(s -> new WDTResponseCode())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(s -> ((IPayView) iView).ResolveCloudPay(s));
+    }
+
+
+    @Override
+    public void ConfirmOrderPay(String secret, String ucode, String ocode, String paytype, String payprice, String dealtype, String pcode, String receive, String remark) {
+        iRequestMode.ConfirmOrderPay(secret, ucode, ocode, paytype, payprice, dealtype, pcode, receive, remark)
+                .onErrorReturn(s -> new WDTResponseCode())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(s -> ((IOrderView) iView).ResolveConfirmOrderPay(s));
     }
 
     @Override

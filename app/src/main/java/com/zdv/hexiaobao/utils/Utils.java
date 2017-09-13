@@ -467,6 +467,30 @@ public class Utils {
         return convertGreyImgByFloyd(convertToBlackWhite(bitmap));
     }
 
+    public Bitmap createWidenQRCODE(Context context,Bitmap source) {
+
+        Bitmap bitmap = Bitmap.createBitmap(300, 200, source.getConfig());
+        Canvas canvas = new Canvas(bitmap);
+
+        canvas.drawBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeResource(context.getResources(), R.drawable.blank), 50,200), 0, 0, null);
+        canvas.drawBitmap(source, 50, 0, null);
+        canvas.drawBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeResource(context.getResources(), R.drawable.blank), 50, 200), 250, 0, null);
+
+        return bitmap;
+    }
+    public Bitmap createWidenOneCODE(Context context,Bitmap source) {
+
+
+        Bitmap bitmap = Bitmap.createBitmap(310, 50, source.getConfig());
+        Canvas canvas = new Canvas(bitmap);
+
+        canvas.drawBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeResource(context.getResources(), R.drawable.blank), 50,50), 0, 0, null);
+        canvas.drawBitmap(source, 50, 0, null);
+      //  canvas.drawBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeResource(context.getResources(), R.drawable.blank), 50, 50), 350, 0, null);
+
+        return bitmap;
+    }
+
 
     public Bitmap convertGreyImgByFloyd(Bitmap img) {
         int width = img.getWidth();         //获取位图的宽
@@ -634,7 +658,7 @@ public class Utils {
     public Bitmap CreateTwoDCode(String content) throws WriterException {
         // 生成二维矩阵,编码时指定大小,不要生成了图片以后再进行缩放,这样会模糊导致识别失败
         BitMatrix matrix = new MultiFormatWriter().encode(content,
-                BarcodeFormat.QR_CODE, 300, 300);
+                BarcodeFormat.QR_CODE, 200, 200);
         int width = matrix.getWidth();
         int height = matrix.getHeight();
         // 二维矩阵转为一维像素数组,也就是一直横着排了
@@ -664,7 +688,7 @@ public class Utils {
     public Bitmap CreateOneDCode(String content) throws WriterException {
         // 生成一维条码,编码时指定大小,不要生成了图片以后再进行缩放,这样会模糊导致识别失败
         BitMatrix matrix = new MultiFormatWriter().encode(content,
-                BarcodeFormat.CODE_128, 350, 120);
+                BarcodeFormat.CODE_128, 260, 50);
         int width = matrix.getWidth();
         int height = matrix.getHeight();
         int[] pixels = new int[width * height];

@@ -14,5 +14,11 @@ public interface IRequestPresent {
 
     void SearchCloudOrder( String id, String sign);
 
+    void CloudPay( String id, String sign ,String pay_type);
+
+    void ConfirmOrderPay(String secret,String ucode, String ocode
+            ,String paytype,String payprice, String dealtype,
+                         String pcode,String receive,String remark);
+
     void ConfirmCloudOrder( String id, String sign);
 }

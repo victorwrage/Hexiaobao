@@ -14,6 +14,7 @@ public class BaseActivity extends FragmentActivity {
     protected static final String PAGE_0 = "page_0";
     protected static final String PAGE_1 = "page_1";
     protected static final String PAGE_2 = "page_2";
+    protected static final String PAGE_3 = "page_3";
     protected Context context;
     ProgressDialog progressDialog;
 

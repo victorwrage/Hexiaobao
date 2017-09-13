@@ -1,5 +1,6 @@
 package com.zdv.hexiaobao.view;
 
+import com.zdv.hexiaobao.bean.WDTResponseCode;
 import com.zdv.hexiaobao.bean.WandiantongRespInfo;
 
 /**
@@ -16,4 +17,8 @@ public interface IOrderView extends IView{
     void ResolveSearchCloudOrderInfo(WandiantongRespInfo info);
 
     void ResolveConfirmCloudOrderInfo(WandiantongRespInfo info);
+
+
+    void ResolveConfirmOrderPay(WDTResponseCode info);
+
 }

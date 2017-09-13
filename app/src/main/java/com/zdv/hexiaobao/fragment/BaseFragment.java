@@ -18,13 +18,16 @@ import com.zdv.hexiaobao.cus_view.ProgressBarItem;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public abstract class BaseFragment extends Fragment {
     protected Context context;
     protected final String SUCCESS = "200";
     protected final String CLOUD_SUCCESS = "0";
+    protected final String CLOUD_EMPTY = "401";
     protected final String COOKIE_KEY = "cookie";
-
+    public Executor executor;
 
     public String currentDate(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
@@ -35,6 +38,7 @@ public abstract class BaseFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getContext();
+        executor = Executors.newSingleThreadScheduledExecutor();
     }
 
 

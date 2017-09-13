@@ -1,5 +1,8 @@
 package com.zdv.hexiaobao.model;
 
+import android.support.annotation.Nullable;
+
+import com.zdv.hexiaobao.bean.WDTResponseCode;
 import com.zdv.hexiaobao.bean.WandiantongLoginInfo;
 import com.zdv.hexiaobao.bean.WandiantongRespInfo;
 
@@ -31,6 +34,11 @@ public class RequestModelImpl implements IRequestMode {
     }
 
     @Override
+    public Observable<WDTResponseCode> ConfirmOrderPay(@Field("secret") String secret, @Field("ucode") String ucode, @Field("ocode") String ocode, @Field("paytype") String paytype, @Field("payprice") String payprice, @Field("dealtype") String dealtype, @Field("pcode") String pcode, @Field("receive") String receive, @Nullable @Field("remark") String remark) {
+        return iRequestMode.ConfirmOrderPay(secret, ucode, ocode, paytype, payprice, dealtype, pcode, receive, remark);
+    }
+
+    @Override
     public Observable<WandiantongRespInfo> SearchCloudOrder(@Field("id") String id, @Field("sign") String sign) {
         return iRequestMode.SearchCloudOrder(id, sign);
     }
@@ -38,5 +46,10 @@ public class RequestModelImpl implements IRequestMode {
     @Override
     public Observable<WandiantongRespInfo> ConfirmCloudOrder(@Field("id") String id, @Field("sign") String sign) {
         return iRequestMode.ConfirmCloudOrder(id, sign);
+    }
+
+    @Override
+    public Observable<WDTResponseCode> CloudPay(@Field("id") String id, @Field("sign") String sign, @Field("pay_type") String pay_type) {
+        return iRequestMode.CloudPay(id, sign, pay_type);
     }
 }

@@ -12,6 +12,7 @@ public class Constant {
 
 
     public static final String URL_WANDIAN = "http://wdt.qianhaiwei.com/";//万店通
+    public static final String URL_RENRENSONG= "http://rrs.qianhaiwei.com/rrs/";//人人送
 
     public static final String PUBLIC_BMOB_KEY = "b68541f6689727e916a53f8761c86f14";//BMOB APP KEY
 

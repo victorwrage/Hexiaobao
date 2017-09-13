@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -81,7 +82,17 @@ public class FragmentLogin extends BaseFragment  implements ILoginView{
         RxView.clicks(login_login_btn).throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(s -> Login());
         RxView.clicks(update_iv).throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(s ->  BmobUpdateAgent.forceUpdate(getContext()));
         update_tv.setText("当前版本"+util.getAppVersionName(getContext()));
+        login_password_et.setOnEditorActionListener(editorActionListener);
+
     }
+
+    public TextView.OnEditorActionListener editorActionListener = (v, actionId, event) -> {
+      if(actionId == EditorInfo.IME_ACTION_SEND)
+        {
+            Login();
+        }
+        return true;
+    };
 
     private void initDate() {
         sp = getContext().getSharedPreferences(COOKIE_KEY, 0);

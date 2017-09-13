@@ -54,6 +54,7 @@
             android:scaleType="fitEnd"
             android:src="@drawable/tip_scan" />
     </RelativeLayout>
+
     <LinearLayout
         android:id="@+id/main_bottom"
         android:layout_width="match_parent"
@@ -62,8 +63,8 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="5dp"
         android:gravity="center"
-        android:visibility="gone"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/main_tip_iv"
@@ -79,13 +80,50 @@
             android:text="销单成功，请继续"
             android:textColor="@color/hexiaobao_txt"
             android:textSize="22sp" />
+        <Button
+            android:id="@+id/main_tip_btn"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/white"
+            android:background="@drawable/big_btn_backgroud"
+            android:text="支付费用"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:id="@+id/main_print_btn"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/big_btn_backgroud"
+                android:text="重新打印"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/main_goon_btn"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+                android:visibility="gone"
+                android:layout_margin="5dp"
+                android:background="@drawable/big_btn_backgroud"
+                android:text="继续核销"
+                android:textColor="@color/white" />
+        </LinearLayout>
     </LinearLayout>
+
     <RelativeLayout
         android:id="@+id/main_scan_lay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/main_header"
         android:layout_above="@id/main_bottom"
+        android:layout_below="@id/main_header"
         android:visibility="visible">
 
         <RelativeLayout
@@ -93,6 +131,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone">
+
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycle_list"
                 android:layout_width="match_parent"

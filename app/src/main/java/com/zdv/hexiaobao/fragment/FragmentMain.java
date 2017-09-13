@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -33,6 +34,7 @@ import com.zdv.hexiaobao.adapter.EvaluateItemAdapter;
 import com.zdv.hexiaobao.bean.DaoSession;
 import com.zdv.hexiaobao.bean.VerifyRecord;
 import com.zdv.hexiaobao.bean.VerifyRecordDao;
+import com.zdv.hexiaobao.bean.WDTResponseCode;
 import com.zdv.hexiaobao.bean.WDTResponseContentItem;
 import com.zdv.hexiaobao.bean.WandiantongOrderInfo;
 import com.zdv.hexiaobao.bean.WandiantongRespInfo;
@@ -47,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -63,16 +66,23 @@ public class FragmentMain extends BaseFragment implements IOrderView {
     @Bind(R.id.header_exit)
     RelativeLayout header_exit;
 
-   /* @Bind(R.id.empty_iv)
-    ImageView empty_iv;
-    @Bind(R.id.empty_tv)
-    TextView empty_tv;
-    @Bind(R.id.empty_lay)
-    RelativeLayout empty_lay;*/
+    /* @Bind(R.id.empty_iv)
+     ImageView empty_iv;
+     @Bind(R.id.empty_tv)
+     TextView empty_tv;
+     @Bind(R.id.empty_lay)
+     RelativeLayout empty_lay;*/
     @Bind(R.id.main_tip_iv)
     ImageView main_tip_iv;
     @Bind(R.id.main_tip_tv)
     TextView main_tip_tv;
+    @Bind(R.id.main_tip_btn)
+    Button main_tip_btn;
+
+    @Bind(R.id.main_print_btn)
+    TextView main_print_btn;
+    @Bind(R.id.main_goon_btn)
+    TextView main_goon_btn;
 
     @Bind(R.id.main_tip_lay)
     RelativeLayout main_tip_lay;
@@ -122,6 +132,7 @@ public class FragmentMain extends BaseFragment implements IOrderView {
     ArrayList<WDTResponseContentItem> data;
     String code;
     String order_sn;
+    String order_money;
     Boolean isInit = false;
     WandiantongOrderInfo cloudInfo;
     private int curType;
@@ -130,6 +141,8 @@ public class FragmentMain extends BaseFragment implements IOrderView {
 
     private PopupWindow popupWindow;
     View popupWindowView;
+    private boolean isNotReceive = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -150,16 +163,36 @@ public class FragmentMain extends BaseFragment implements IOrderView {
     private void initView() {
         data = new ArrayList<>();
         adapter = new EvaluateItemAdapter(data, context);
-        popupWindowView = View.inflate(getContext(),R.layout.pop_menu, null);
+        popupWindowView = View.inflate(getContext(), R.layout.pop_menu, null);
         recycle_list.setLayoutManager(new LinearLayoutManager(getActivity()));
         AlphaAnimatorAdapter animatorAdapter = new AlphaAnimatorAdapter(adapter, recycle_list);
-   //     recycle_list.setEmptyView(empty_lay);
+        //     recycle_list.setEmptyView(empty_lay);
         recycle_list.setAdapter(animatorAdapter);
         int spacingInPixels = 8;
         recycle_list.addItemDecoration(new SpacesItemDecoration(spacingInPixels));
         tip_text.setText(getResources().getString(R.string.scan_tip));
         RxView.clicks(header_exit).subscribe(s -> listener.Exit());
         RxView.clicks(header_thumb).subscribe(s -> ShowPopupWindow(header_thumb));
+
+        RxView.clicks(main_print_btn).throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(s -> PrintAgain());
+        RxView.clicks(main_goon_btn).throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(s -> Goon());
+        RxView.clicks(main_tip_btn).throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(s -> listener.gotoPay(order_sn, order_money));
+
+    }
+
+    private void Goon() {
+        showWaitDialog("请稍等");
+        main_bottom.postDelayed(() -> {
+            hideWaitDialog();
+        }, 2000);
+        listener.startScan();
+        scan_type_cloud.setVisibility(View.GONE);
+        main_bottom.setVisibility(View.GONE);
+        main_tip_lay.setVisibility(View.VISIBLE);
+    }
+
+    private void PrintAgain() {
+        listener.closeScanThenPrint();
     }
 
     private void initDate() {
@@ -168,28 +201,31 @@ public class FragmentMain extends BaseFragment implements IOrderView {
         present = QueryPresent.getInstance(context);
         present.initRetrofit(Constant.URL_WANDIAN, false);
         present.setView(FragmentMain.this);
-        DaoSession daoSession = ((HeApplication) getActivity().getApplication()).getDaoSession();
-        verifyRecordDao = daoSession.getVerifyRecordDao();
-        history_data = new ArrayList<>();
-        history_data.addAll(verifyRecordDao.loadAll());
+        executor.execute(() -> {
+            DaoSession daoSession = ((HeApplication) getActivity().getApplication()).getDaoSession();
+            verifyRecordDao = daoSession.getVerifyRecordDao();
+            history_data = new ArrayList<>();
+            history_data.addAll(verifyRecordDao.loadAll());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
-        String now = sdf.format(new Date());
-        long dec = util.getTodayZero();
-    //    KLog.v("history_data"+history_data.size()+"now="+now+"---"+util.ValidateFormat(now)+"---"+util.ValidateFormat(history_data.get(0).getDate())+"----"+dec);
-        for(VerifyRecord verifyRecord_:history_data){
-            if ( util.ValidateFormat(verifyRecord_.getDate()) < dec) {
-                verifyRecordDao.delete(verifyRecord_);
-                KLog.v("DELETE one"+verifyRecord_.getDate());
-                return;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+            String now = sdf.format(new Date());
+            long dec = util.getTodayZero();
+//        KLog.v("history_data"+history_data.size()+"now="+now+"---"+util.ValidateFormat(now)+"---"+util.ValidateFormat(history_data.get(0).getDate())+"----"+dec);
+            for (VerifyRecord verifyRecord_ : history_data) {
+                if (util.ValidateFormat(verifyRecord_.getDate()) < dec) {
+                    verifyRecordDao.delete(verifyRecord_);
+                    KLog.v("DELETE one" + verifyRecord_.getDate());
+                    //   return;
+                }
             }
-        }
+            KLog.v(sp.getString("img_path", ""));
 
-        if(sp.getString("img_path","").equals("")){
-            Constant.logo =    BitmapFactory.decodeResource(getResources(), R.drawable.print_logo);
-        }else{
-            Constant.logo =   util.createLogo(getContext(),(sp.getString("img_path","")));
-        }
+            if (sp.getString("img_path", "").equals("")) {
+                Constant.logo = BitmapFactory.decodeResource(getResources(), R.drawable.print_logo);
+            } else {
+                Constant.logo = util.createLogo(getContext(), (sp.getString("img_path", "")));
+            }
+        });
     }
 
     private void ShowPopupWindow(View view) {
@@ -204,12 +240,12 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             menu_data.add("打印logo");
             menu_data.add("核销记录");
             ArrayAdapter<String> menu_adapter;
-            menu_adapter =  new ArrayAdapter<>(getContext(), R.layout.spinner_lay_item, menu_data);
+            menu_adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_lay_item, menu_data);
             ListView listView = (ListView) popupWindowView.findViewById(R.id.menu_list);
             listView.setAdapter(menu_adapter);
 
             listView.setOnItemClickListener((adapterView, view1, i, l) -> {
-                switch(i){
+                switch (i) {
                     case 0:
                         listener.Photo();
                         break;
@@ -222,7 +258,7 @@ public class FragmentMain extends BaseFragment implements IOrderView {
         }
         backgroundAlpha(0.5f);
         popupWindow.showAtLocation(view,
-                Gravity.TOP | Gravity.RIGHT, 0,100);
+                Gravity.TOP | Gravity.RIGHT, 0, 100);
 
     }
 
@@ -231,7 +267,6 @@ public class FragmentMain extends BaseFragment implements IOrderView {
         lp.alpha = v;
         getActivity().getWindow().setAttributes(lp);
     }
-
 
 
     @Override
@@ -246,15 +281,10 @@ public class FragmentMain extends BaseFragment implements IOrderView {
 
     public void queryOrder(String code) {
         this.code = code;
-        if (code.startsWith("ZDH")) {
-            scan_type_cloud.setVisibility(View.GONE);
-            curType = TYPE_MALL;
-            present.initRetrofit(Constant.URL_WANDIAN, false);
-            present.SearchOrder(Constant.cookie.get("secret"), Constant.cookie.get("ucode"), code);
-        } else if (code.startsWith("RRS")) {
+        if (code.startsWith("RRS")) {
             scan_type_mall.setVisibility(View.GONE);
             curType = TYPE_CLOUD;
-            present.initRetrofit(Constant.URL_WANDIAN, false);
+            present.initRetrofit(Constant.URL_RENRENSONG, false);
             HashMap<String, String> StringA1 = new HashMap<>();
 
             StringA1.put(Constant.ID, code);
@@ -263,9 +293,13 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             present.SearchCloudOrder(StringA1.get(Constant.ID), StringA1.get(Constant.SIGN));
         } else {
             scan_type_cloud.setVisibility(View.GONE);
+            curType = TYPE_MALL;
+            present.initRetrofit(Constant.URL_WANDIAN, false);
+            present.SearchOrder(Constant.cookie.get("secret"), Constant.cookie.get("ucode"), code);
+            /*scan_type_cloud.setVisibility(View.GONE);
             scan_type_mall.setVisibility(View.GONE);
             main_tip_tv.setText("不是有效的订单号");
-            VToast.toast(context, "不是有效的订单号");
+            VToast.toast(context, "不是有效的订单号");*/
             return;
         }
     }
@@ -291,6 +325,8 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             main_scan_lay.setVisibility(View.VISIBLE);
             main_tip_lay.setVisibility(View.GONE);
             main_bottom.setVisibility(View.VISIBLE);
+            main_goon_btn.setVisibility(View.GONE);
+            main_print_btn.setVisibility(View.GONE);
             isInit = true;
         }
         if (info.getErrcode().equals(SUCCESS)) {
@@ -313,7 +349,19 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             main_tip_iv.setImageResource(R.drawable.fail_tip);
             main_tip_tv.setText(info.getErrmsg());
         }
+    }
 
+    /**
+     * 核销人人送订单
+     */
+    public void ConfirmCloudOrder() {
+        showWaitDialog("正在核销订单");
+        present.initRetrofit(Constant.URL_RENRENSONG, false);
+        HashMap<String, String> StringA1 = new HashMap<>();
+        StringA1.put(Constant.ID, code);
+        String sign1 = util.getSign(StringA1);
+        StringA1.put(Constant.SIGN, sign1);
+        present.ConfirmCloudOrder(StringA1.get(Constant.ID), StringA1.get(Constant.SIGN));
     }
 
     @Override
@@ -351,22 +399,22 @@ public class FragmentMain extends BaseFragment implements IOrderView {
         }
     }
 
-    private void insertRecord(WandiantongOrderInfo info){
-        Boolean isExist =false;
-        for(VerifyRecord verifyRecord_:history_data){
-            if( info.getId().equals(verifyRecord_.getItem_id())){
+    private void insertRecord(WandiantongOrderInfo info) {
+        Boolean isExist = false;
+        for (VerifyRecord verifyRecord_ : history_data) {
+            if (info.getId().equals(verifyRecord_.getItem_id())) {
                 isExist = true;
                 break;
             }
         }
-       if(isExist){
-           return;
-       }
+        if (isExist) {
+            return;
+        }
 
         Gson gson = new Gson();
         String g_str = gson.toJson(info);
 
-        VerifyRecord verifyRecord = gson.fromJson(g_str,VerifyRecord.class);
+        VerifyRecord verifyRecord = gson.fromJson(g_str, VerifyRecord.class);
         verifyRecord.setDate(currentDate("yyyy-MM-dd HH:mm:ss"));
         verifyRecord.setItem_id(info.getId());
 
@@ -396,22 +444,65 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             main_scan_lay.setVisibility(View.VISIBLE);
             main_tip_lay.setVisibility(View.GONE);
             main_bottom.setVisibility(View.VISIBLE);
+            main_goon_btn.setVisibility(View.GONE);
+            main_print_btn.setVisibility(View.GONE);
             isInit = true;
         }
+
         if (info.getErrcode().equals(CLOUD_SUCCESS)) {
             scan_type_cloud.setVisibility(View.VISIBLE);
             scan_type_mall.setVisibility(View.GONE);
+            main_tip_btn.setVisibility(View.GONE);
+
             cloudInfo = info.getContent();
             writeView(info.getContent());
-            isInit = true;
-            showWaitDialog("正在核销订单");
-            present.initRetrofit(Constant.URL_WANDIAN, false);
-            HashMap<String, String> StringA1 = new HashMap<>();
-            StringA1.put(Constant.ID, code);
-            String sign1 = util.getSign(StringA1);
-            StringA1.put(Constant.SIGN, sign1);
+            main_tip_tv.setText("查询成功");
 
-            present.ConfirmCloudOrder(StringA1.get(Constant.ID), StringA1.get(Constant.SIGN));
+            order_sn = info.getContent().getId();
+            order_money = info.getContent().getMoney();
+
+            isInit = true;
+
+            if (info.getContent().getPaytype().equals("0")) {//线下支付
+                if (info.getContent().getB_status().equals("0")) {//未受理
+                    isNotReceive = true;
+                    ConfirmCloudOrder();
+                } else if (info.getContent().getB_status().equals("1")) {//已受理
+
+                    if (info.getContent().getPay_status().equals("0")) {//未支付
+                        main_tip_lay.setVisibility(View.GONE);
+                        main_bottom.setVisibility(View.VISIBLE);
+                        main_tip_tv.setText("订单需要支付才能继续核销");
+                        if(!isNotReceive) {
+                           main_print_btn.setVisibility(View.GONE);
+                        }
+                        isNotReceive = false;
+                        main_goon_btn.setVisibility(View.VISIBLE);
+                        main_tip_btn.setVisibility(View.VISIBLE);
+                        listener.gotoPay(order_sn, order_money);
+                    } else {//已支付
+
+                        ConfirmCloudOrder();
+                    }
+                } else {
+                    main_goon_btn.setVisibility(View.VISIBLE);
+                    main_tip_tv.setText("此订单不能受理!");
+                }
+            } else if (info.getContent().getPaytype().equals("1")) {//到付
+                main_tip_lay.setVisibility(View.GONE);
+                main_bottom.setVisibility(View.VISIBLE);
+                ConfirmCloudOrder();
+            } else if (info.getContent().getPaytype().equals("2")) {//月结
+                main_tip_lay.setVisibility(View.GONE);
+                main_bottom.setVisibility(View.VISIBLE);
+                ConfirmCloudOrder();
+            } else {
+                main_tip_lay.setVisibility(View.GONE);
+                main_bottom.setVisibility(View.VISIBLE);
+                ConfirmCloudOrder();
+            }
+        } else if (info.getErrcode().equals(CLOUD_EMPTY)) {
+            ConfirmCloudOrder();
         } else {
             showWaitDialog("请稍等");
             main_bottom.postDelayed(() -> {
@@ -445,6 +536,17 @@ public class FragmentMain extends BaseFragment implements IOrderView {
     }
 
 
+    /**
+     * 插入记并打印
+     */
+    public void InsertRecordAndPrint() {
+        main_goon_btn.setVisibility(View.VISIBLE);
+        main_print_btn.setVisibility(View.VISIBLE);
+
+        listener.closeScanThenPrint();
+        insertRecord(cloudInfo);
+    }
+
     @Override
     public void ResolveConfirmCloudOrderInfo(WandiantongRespInfo info) {
         hideWaitDialog();
@@ -462,20 +564,21 @@ public class FragmentMain extends BaseFragment implements IOrderView {
         VToast.toast(context, info.getErrmsg());
         if (info.getErrcode().equals(CLOUD_SUCCESS)) {
             main_tip_iv.setImageResource(R.drawable.success_tip);
-            main_tip_tv.setText("核销成功");
-            if(info.getIs_print().equals("1")){
-                order_sn = info.getOrder_sn();
-                listener.closeScanThenPrint();
-                insertRecord(cloudInfo);
-            }else{
-                showWaitDialog("请稍等");
-                main_bottom.postDelayed(() -> {
-                    hideWaitDialog();
-                    listener.startScan();
-                }, 1000);
+
+            main_tip_btn.setVisibility(View.GONE);
+            if (info.getIs_print().equals("1")) {
+                queryOrder(code);
+                main_tip_tv.setText("受理成功");
+                main_print_btn.setVisibility(View.VISIBLE);
+                InsertRecordAndPrint();
+            } else {
+                main_goon_btn.setVisibility(View.VISIBLE);
+                main_tip_tv.setText("核销成功");
             }
 
         } else {
+            main_goon_btn.setVisibility(View.GONE);
+            main_print_btn.setVisibility(View.GONE);
             showWaitDialog("请稍等");
             main_bottom.postDelayed(() -> {
                 hideWaitDialog();
@@ -484,6 +587,12 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             main_tip_iv.setImageResource(R.drawable.fail_tip);
             main_tip_tv.setText(info.getErrmsg());
         }
+    }
+
+
+    @Override
+    public void ResolveConfirmOrderPay(WDTResponseCode info) {
+
     }
 
     public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
@@ -507,17 +616,22 @@ public class FragmentMain extends BaseFragment implements IOrderView {
     }
 
     public void print() {
-        listener.print(order_sn);
+        listener.print(code);
     }
 
     public interface IMainListener {
         void startScan();
+
         void Exit();
+
         void closeScanThenPrint();
 
         void print(String info);
 
         void Photo();
+
         void gotoHistory();
+
+        void gotoPay(String order_id, String cash);
     }
 }

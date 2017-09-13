@@ -1,5 +1,8 @@
 package com.zdv.hexiaobao.model;
 
+import android.support.annotation.Nullable;
+
+import com.zdv.hexiaobao.bean.WDTResponseCode;
 import com.zdv.hexiaobao.bean.WandiantongLoginInfo;
 import com.zdv.hexiaobao.bean.WandiantongRespInfo;
 
@@ -26,10 +29,20 @@ public interface IRequestMode {
     Observable<WandiantongRespInfo> ConfirmOrder(@Field("secret") String secret, @Field("ucode") String ucode, @Field("ocode") String ocode, @Field("remark") String remark);
 
     @FormUrlEncoded
-    @POST("cloudsend/index.php?g=Api&m=Book&a=searchOrder")
+    @POST("index.php?g=Api&m=Book&a=searchOrder")
     Observable<WandiantongRespInfo> SearchCloudOrder(@Field("id") String id, @Field("sign") String sign);
 
     @FormUrlEncoded
-    @POST("cloudsend/index.php?g=Api&m=Book&&a=acceptOrder")
+    @POST("index.php?g=Api&m=Book&&a=acceptOrder")
     Observable<WandiantongRespInfo> ConfirmCloudOrder(@Field("id") String id, @Field("sign") String sign);
+
+    @FormUrlEncoded
+    @POST("index.php?g=Api&m=Book&&a=save_paytype")
+    Observable<WDTResponseCode> CloudPay(@Field("id") String id, @Field("sign") String sign, @Field("pay_type") String pay_type);
+
+    @FormUrlEncoded
+    @POST("ThinkCmf/index.php?g=Api&m=Ordercomment&a=AddOrderFeedback")
+    Observable<WDTResponseCode> ConfirmOrderPay(@Field("secret") String secret, @Field("ucode") String ucode, @Field("ocode") String ocode
+            , @Field("paytype") String paytype, @Field("payprice") String payprice, @Nullable @Field("dealtype") String dealtype,
+                                                @Field("pcode") String pcode, @Field("receive") String receive, @Nullable @Field("remark") String remark);
 }

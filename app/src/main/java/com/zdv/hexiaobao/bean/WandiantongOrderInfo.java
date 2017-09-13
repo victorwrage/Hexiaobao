@@ -64,11 +64,11 @@ public class WandiantongOrderInfo {
     }
 
     public String getPaytype() {
-        return paytype;
+        return pay_type;
     }
 
     public void setPaytype(String paytype) {
-        this.paytype = paytype;
+        this.pay_type = paytype;
     }
 
     public String getStatus() {
@@ -153,7 +153,7 @@ public class WandiantongOrderInfo {
 
     String payprice;
     String paystate;
-    String paytype;
+    String pay_type;
     String status;
     String address;
     String coster;
@@ -188,8 +188,18 @@ public class WandiantongOrderInfo {
     String y_name;
     String h_address;
     String h_tel;
+
+    public String getPay_status() {
+        return pay_status;
+    }
+
+    public void setPay_status(String pay_status) {
+        this.pay_status = pay_status;
+    }
+
     String h_name;
     String order_sn;
+    String pay_status;
 
     public String getId() {
         return id;
@@ -367,10 +377,10 @@ public class WandiantongOrderInfo {
 
     @Override
     public String toString() {
-        if(lists==null || lists.get(0)==null){
-            return code+"--"+ucode+"--"+createtime+totalprice+payprice+paystate+paytype+status+address+coster+company_id+solve+send_type+crawl+shoptype+remark;
+        if(lists==null ||  lists.size()==0 || lists.get(0)==null){
+            return code+"--"+ucode+"--"+createtime+totalprice+payprice+paystate+pay_type+status+address+coster+company_id+solve+send_type+crawl+shoptype+remark;
         }
-        return code+"--"+ucode+"--"+createtime+totalprice+payprice+paystate+paytype+status+address+coster+company_id+solve+send_type+crawl+shoptype+remark+lists.get(0).toString();
+        return code+"--"+ucode+"--"+createtime+totalprice+payprice+paystate+pay_type+status+address+coster+company_id+solve+send_type+crawl+shoptype+remark+lists.get(0).toString();
     }
 
 }

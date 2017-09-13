@@ -31,6 +31,7 @@ import com.zdv.hexiaobao.fragment.DialogFragmentPhotoTip;
 import com.zdv.hexiaobao.fragment.FragmentHistory;
 import com.zdv.hexiaobao.fragment.FragmentLogin;
 import com.zdv.hexiaobao.fragment.FragmentMain;
+import com.zdv.hexiaobao.fragment.PayFragment;
 import com.zdv.hexiaobao.utils.Constant;
 import com.zdv.hexiaobao.utils.D2000V1ScanInitUtils;
 import com.zdv.hexiaobao.utils.Utils;
@@ -45,7 +46,7 @@ import cn.bmob.v3.update.BmobUpdateAgent;
 import cn.bmob.v3.update.UpdateStatus;
 
 
-public class MainActivity extends BaseActivity implements FragmentLogin.ILoginListener, FragmentMain.IMainListener, DialogFragmentPhotoTip.IPhotoTipListtener
+public class MainActivity extends BaseActivity implements FragmentLogin.ILoginListener, FragmentMain.IMainListener,PayFragment.IPayListener, DialogFragmentPhotoTip.IPhotoTipListtener
         , FragmentHistory.IHistoryListener {
     private final int START_ALBUM_REQUESTCODE = 1;
     private final int CAMERA_WITH_DATA = 2;
@@ -54,6 +55,7 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
     FragmentLogin fragment0;
     FragmentMain fragment1;
     FragmentHistory fragment2;
+    PayFragment fragment3;
     D2000V1ScanInitUtils d2000V1ScanInitUtils;
     private final static int SCAN_CLOSED = 20;
     Printer printer;
@@ -70,6 +72,10 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (fragment2 != null && !fragment2.isHidden()) {
                 fragment2.Back();
+                return true;
+            }
+            if (fragment3 != null && !fragment3.isHidden()) {
+                fragment3.Back();
                 return true;
             }
             Exit();
@@ -217,8 +223,8 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
 
         promptHandler.postDelayed(() -> {
             hideWaitDialog();
-            startScan();
-        }, 7000);
+          //  startScan();
+        }, 5000);
     }
 
     @Override
@@ -242,8 +248,31 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
         ft.commit();
     }
 
+    @Override
+    public void gotoPay(String order_id,String cash) {
+        KLog.v("order_id"+order_id +"cash:"+cash);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        if (fragment3 == null) {
+            fragment3 = new PayFragment();
+            ft.add(R.id.fragment_container, fragment3, PAGE_3);
+        } else {
+            fragment3.refreshState();
+        }
+        fragment3.setOrderId(order_id,cash);
+
+        ft.hide(fragment1);
+        ft.show(fragment3);
+        ft.commitAllowingStateLoss();
+
+    }
+
 
     private void printLogo(String info) {
+        if(Constant.logo==null){
+            VToast.toast(context,"定制的LOGO不存在，将恢复默认");
+            sp.edit().putString("img_path","").commit();
+            Constant.logo = BitmapFactory.decodeResource(getResources(), R.drawable.print_logo);
+        }
         Bitmap bitmap = util.readBitMap(context, Constant.logo);
         Bitmap barcode = null;
         try {
@@ -251,12 +280,14 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
         } catch (WriterException e) {
             e.printStackTrace();
         }
-        Bitmap topBmp = util.addTopBmp(bitmap, barcode);
-        //  fragment1.setImg(topBmp);
-        printer.DLL_PrnBmp(topBmp);
+        //Bitmap topBmp = util.createWidenQRCODE(context, barcode);
+        Bitmap topBmp = util.createWidenOneCODE(context, barcode);
+
+        printer.DLL_PrnBmp(bitmap);
         printer.DLL_PrnStr("     \n");
         printer.DLL_PrnSetFont((byte) 24, (byte) 24, (byte) 0x00);
         printer.DLL_PrnStr("            " + info + "\n");
+        printer.DLL_PrnBmp(topBmp);
         printer.DLL_PrnStr("     \n");
         printer.DLL_PrnStr("     \n");
         printer.DLL_PrnStart();
@@ -319,11 +350,14 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
             fragment2 = new FragmentHistory();
             ft.add(R.id.fragment_container, fragment2, PAGE_2);
         }
+        if (fragment3 != null) {
+            ft.hide(fragment3);
+        }
         ft.show(fragment1);
         ft.hide(fragment0);
 
         ft.hide(fragment2);
-        ft.commit();
+        ft.commitAllowingStateLoss();
     }
 
     @Override
@@ -414,6 +448,19 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(
                 Environment.getExternalStorageDirectory(), Constant.TMP_PATH)));
         startActivityForResult(intent, CAMERA_WITH_DATA);
+    }
+
+    @Override
+    public void payBack(int pay_state) {
+        gotoMain();
+        switch(pay_state){
+            case 0:
+
+                break;
+            case 1:
+                fragment1.ConfirmCloudOrder();
+                break;
+        }
     }
 
 }
