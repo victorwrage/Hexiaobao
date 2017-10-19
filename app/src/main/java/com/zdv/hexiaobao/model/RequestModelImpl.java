@@ -48,6 +48,16 @@ public class RequestModelImpl implements IRequestMode {
         return iRequestMode.ConfirmCloudOrder(id, sign);
     }
 
+//    @Override
+//    public Observable<WandiantongRespInfo> SearchTicketOrder(@Field("memcode") String memcode, @Field("sign") String sign) {
+//        return iRequestMode.SearchTicketOrder(memcode,sign);
+//    }
+
+    @Override
+    public Observable<WandiantongRespInfo> SearchTicketOrder(@Field("sign") String sign, @Field("memcode") String memcode, @Field("sn_code") String sn_code) {
+        return iRequestMode.SearchTicketOrder(sign,memcode,sn_code);
+    }
+
     @Override
     public Observable<WDTResponseCode> CloudPay(@Field("id") String id, @Field("sign") String sign, @Field("pay_type") String pay_type) {
         return iRequestMode.CloudPay(id, sign, pay_type);

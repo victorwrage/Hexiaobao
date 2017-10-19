@@ -213,8 +213,8 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
             int iRet = -1;
             iRet = printer.DLL_PrnInit();
             if (iRet == 0) {
+                printer.DLL_PrnSetMode((byte) 0x80);
                 printLogo(info);
-
             } else {
                 hideWaitDialog();
                 VToast.toast(context, "打印错误");
@@ -282,6 +282,7 @@ public class MainActivity extends BaseActivity implements FragmentLogin.ILoginLi
         }
         //Bitmap topBmp = util.createWidenQRCODE(context, barcode);
         Bitmap topBmp = util.createWidenOneCODE(context, barcode);
+
 
         printer.DLL_PrnBmp(bitmap);
         printer.DLL_PrnStr("     \n");

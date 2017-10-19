@@ -20,5 +20,7 @@ public interface IRequestPresent {
             ,String paytype,String payprice, String dealtype,
                          String pcode,String receive,String remark);
 
+    void SearchTicketOrder(String sign,String memcode,String sn_code);
+
     void ConfirmCloudOrder( String id, String sign);
 }

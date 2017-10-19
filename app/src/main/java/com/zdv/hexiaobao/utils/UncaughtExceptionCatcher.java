@@ -15,6 +15,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.socks.library.KLog;
@@ -87,7 +88,6 @@ public class UncaughtExceptionCatcher implements UncaughtExceptionHandler {
 	 * iCaller = aCaller; }
 	 */
     public void uncaughtException(final Thread thread, final Throwable ex) {
-
         if (!handleException(ex) && mDefaultHandler != null) {
             // 如果用户没有处理则让系统默认的异常处理器来处理
             // mDefaultHandler.uncaughtException(thread, ex);

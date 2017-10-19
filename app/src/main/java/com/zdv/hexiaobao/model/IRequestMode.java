@@ -36,6 +36,14 @@ public interface IRequestMode {
     @POST("index.php?g=Api&m=Book&&a=acceptOrder")
     Observable<WandiantongRespInfo> ConfirmCloudOrder(@Field("id") String id, @Field("sign") String sign);
 
+//    @FormUrlEncoded
+//    @POST("index.php?g=Api&m=Curpons&a=getMemCurpons")
+//    Observable<WandiantongRespInfo> SearchTicketOrder(@Field("memcode") String memcode,@Field("sign") String sign);
+
+    @FormUrlEncoded
+    @POST("index.php?g=Api&m=Curpons&a=UseCurpon")
+    Observable<WandiantongRespInfo> SearchTicketOrder(@Field("sign") String sign,@Field("memcode") String memcode,@Field("sn_code") String sn_code);
+
     @FormUrlEncoded
     @POST("index.php?g=Api&m=Book&&a=save_paytype")
     Observable<WDTResponseCode> CloudPay(@Field("id") String id, @Field("sign") String sign, @Field("pay_type") String pay_type);

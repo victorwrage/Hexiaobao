@@ -91,5 +91,10 @@ public abstract class BaseFragment extends Fragment {
     }
 
 
+    private void fun(int i,DialogInterface dia){
+        dialog.dismiss();
+    }
+
+
 
 }

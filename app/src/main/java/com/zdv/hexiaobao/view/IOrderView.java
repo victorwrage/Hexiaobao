@@ -18,6 +18,7 @@ public interface IOrderView extends IView{
 
     void ResolveConfirmCloudOrderInfo(WandiantongRespInfo info);
 
+    void ResolveSearchTicketOrderInfo(WandiantongRespInfo info);
 
     void ResolveConfirmOrderPay(WDTResponseCode info);
 

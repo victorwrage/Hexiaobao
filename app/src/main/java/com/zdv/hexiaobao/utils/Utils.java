@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.TimeUtils;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -214,6 +215,25 @@ public class Utils {
         KLog.v(sb.toString());
         KLog.v(getMD5(sb.toString()));
         return getMD5(sb.toString());
+    }
+
+    public String getSTTXSign(HashMap<String,String> StringAl){
+
+        String key = Constant.PUBLIC_TONGDUI_KEY;
+        String time = getDate();
+Log.v("Hexiaobao",getDate());
+        String md5_key = MD5Utils.md5(key);
+Log.v("Hexiaobao",md5_key);
+        String sign = MD5Utils.md5(key + md5_key + time);
+Log.v("Hexiaobao",sign);
+        return sign;
+    }
+
+    public static String getDate() {
+        Date d = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String dateNowStr = sdf.format(d);
+        return dateNowStr;
     }
 
     public String getMD5(String info) {

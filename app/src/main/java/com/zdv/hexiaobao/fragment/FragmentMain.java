@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.a.a.V;
 import com.google.gson.Gson;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.socks.library.KLog;
@@ -58,7 +60,8 @@ import it.gmariotti.recyclerview.adapter.AlphaAnimatorAdapter;
 public class FragmentMain extends BaseFragment implements IOrderView {
     private final int TYPE_MALL = 0;
     private final int TYPE_CLOUD = TYPE_MALL + 1;
-    private final int QUERY_FAIL = TYPE_CLOUD + 1;
+    private final int TYPE_TICKET = TYPE_CLOUD + 1;
+    private final int QUERY_FAIL = TYPE_TICKET + 1;
     IMainListener listener;
     @Bind(R.id.tip_text)
     TextView tip_text;
@@ -291,6 +294,21 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             String sign1 = util.getSign(StringA1);
             StringA1.put(Constant.SIGN, sign1);
             present.SearchCloudOrder(StringA1.get(Constant.ID), StringA1.get(Constant.SIGN));
+        } else if (code.startsWith("STTX")) {
+            scan_type_cloud.setVisibility(View.GONE);
+            scan_type_mall.setVisibility(View.GONE);
+            curType = TYPE_TICKET;
+            present.initRetrofit(Constant.URI_SHANGTONGTIANXIA, false);
+            String[] codes = code.split("#");
+            HashMap<String,String> StringAl=new HashMap<>();
+            StringAl.put("sn_code",codes[1]);
+            StringAl.put("memcode",codes[2]);
+            String sign1=util.getSTTXSign(StringAl);
+            StringAl.put(Constant.SIGN,sign1);
+
+            Log.v("Hexiao","sign="+StringAl.get(Constant.SIGN)+"  memcode="+StringAl.get("memcode")+"   sn_code="+StringAl.get("sn_code"));
+
+            present.SearchTicketOrder(StringAl.get(Constant.SIGN),StringAl.get("memcode"),StringAl.get("sn_code"));
         } else {
             scan_type_cloud.setVisibility(View.GONE);
             curType = TYPE_MALL;
@@ -473,8 +491,8 @@ public class FragmentMain extends BaseFragment implements IOrderView {
                         main_tip_lay.setVisibility(View.GONE);
                         main_bottom.setVisibility(View.VISIBLE);
                         main_tip_tv.setText("订单需要支付才能继续核销");
-                        if(!isNotReceive) {
-                           main_print_btn.setVisibility(View.GONE);
+                        if (!isNotReceive) {
+                            main_print_btn.setVisibility(View.GONE);
                         }
                         isNotReceive = false;
                         main_goon_btn.setVisibility(View.VISIBLE);
@@ -587,6 +605,56 @@ public class FragmentMain extends BaseFragment implements IOrderView {
             main_tip_iv.setImageResource(R.drawable.fail_tip);
             main_tip_tv.setText(info.getErrmsg());
         }
+    }
+
+    @Override
+    public void ResolveSearchTicketOrderInfo(WandiantongRespInfo info) {
+        hideWaitDialog();
+        KLog.v(info.toString());
+        if (info.getErrmsg()==null){
+            main_bottom.postDelayed(() -> {
+                hideWaitDialog();
+                listener.startScan();
+            }, 1000);
+            main_tip_iv.setImageResource(R.drawable.fail_tip);
+            main_tip_tv.setText("网络请求失败");
+            //showDialog(QUERY_FAIL,"查询订单失败","网络请求无效!","重试","取消 ");
+            VToast.toast(context, "网络错误");
+            return;
+        }
+        if (!isInit) {
+            main_scan_lay.setVisibility(View.VISIBLE);
+            main_tip_lay.setVisibility(View.GONE);
+            main_bottom.setVisibility(View.VISIBLE);
+            main_goon_btn.setVisibility(View.GONE);
+            main_print_btn.setVisibility(View.GONE);
+            isInit = true;
+        }
+        if (info.getErrcode().equals(SUCCESS)){
+            scan_type_cloud.setVisibility(View.GONE);
+            scan_type_mall.setVisibility(View.GONE);
+            main_tip_btn.setVisibility(View.GONE);
+            isInit=true;
+            main_tip_iv.setImageResource(R.drawable.success_tip);
+            main_tip_tv.setText(info.getErrmsg());
+            main_goon_btn.setVisibility(View.VISIBLE);
+            main_tip_tv.setText("核销成功");
+        } else {
+//            VToast.toast(getContext(),info.getErrmsg());
+            main_tip_iv.setImageResource(R.drawable.fail_tip);
+            String tip="卡券失效";
+//            main_tip_tv.setText(info.getErrmsg());
+            main_tip_tv.setText(tip);
+            main_tip_btn.setVisibility(View.GONE);
+            main_goon_btn.setVisibility(View.GONE);
+            main_print_btn.setVisibility(View.GONE);
+            showWaitDialog("请稍等");
+            main_bottom.postDelayed(() -> {
+                hideWaitDialog();
+                listener.startScan();
+            }, 1000);
+        }
+        hideWaitDialog();
     }
 
 

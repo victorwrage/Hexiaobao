@@ -164,4 +164,12 @@ public class QueryPresent implements IRequestPresent {
                 .subscribe(s -> ((IOrderView) iView).ResolveConfirmCloudOrderInfo(s));
     }
 
+    @Override
+    public void SearchTicketOrder(String sign, String memcode, String sn_code) {
+        iRequestMode.SearchTicketOrder(sign,memcode,sn_code)
+                .onErrorReturn(s -> new WandiantongRespInfo())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(s -> ((IOrderView) iView).ResolveSearchTicketOrderInfo(s));
+    }
 }
